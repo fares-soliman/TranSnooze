@@ -3,5 +3,5 @@
 </p>
 
 <p align="center">
-  <img src="transnooze demo.gif">
+  <img width = 50% src="transnooze demo.gif">
 </p>
