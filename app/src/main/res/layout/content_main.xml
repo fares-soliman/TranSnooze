@@ -17,9 +17,12 @@
         android:layout_height="wrap_content"
         android:layout_margin="8dp"
         android:layout_marginTop="8dp"
-        android:textFilterEnabled="false"
+        android:clickable="true"
         android:divider="@color/quantum_grey"
-        android:dividerHeight="1px"/>
+        android:dividerHeight="1px"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:textFilterEnabled="false" />
 
     <TextView
         android:id="@+id/emptyView"
@@ -29,11 +32,10 @@
         android:layout_marginStart="8dp"
         android:layout_marginEnd="8dp"
         android:layout_marginBottom="8dp"
+        android:fontFamily="@font/montserratregular"
         android:gravity="center"
         android:text="No alarms set"
         android:textColor="#966602"
         android:textSize="36sp"
-        android:visibility="gone"
-        android:fontFamily="@font/montserratregular"
-        />
+        android:visibility="gone" />
 </LinearLayout>
