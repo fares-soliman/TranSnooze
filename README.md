@@ -8,5 +8,7 @@
 
 ## About
 An app I created that uses Google's Geofencing and Places APIs to wake you up when you reach your transit stop. 
+
 ***Never pass your stop because of your poor sleeping habits ever again!***
 
+(Will upload to the Play Store after further debugging)
