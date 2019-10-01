@@ -103,7 +103,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         setContentView(R.layout.activity_maps);
         createGoogleApi();
 
-        Places.initialize(getApplicationContext(), "AIzaSyCN15Tb6TbvsMibYwpmveCen_lbnga3_dc");
+        Places.initialize(getApplicationContext(), "redacted");
         PlacesClient placesClient = Places.createClient(this);
 
 
