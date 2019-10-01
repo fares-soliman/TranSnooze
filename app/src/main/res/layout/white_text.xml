@@ -4,10 +4,12 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:descendantFocusability="blocksDescendants"
+    >
 
-    <TextView xmlns:android="http://schemas.android.com/apk/res/android"
-        android:id="@+id/text1"
+    <TextView
+        android:id="@+id/userTitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
@@ -27,21 +29,21 @@
 
     <Switch
         android:id="@+id/switch1"
-        android:layout_width="70dp"
-        android:layout_height="23dp"
-        android:layout_marginTop="24dp"
+        android:layout_width="85dp"
+        android:layout_height="42dp"
+        android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
-        app:layout_constraintEnd_toEndOf="@+id/text1"
+        app:layout_constraintEnd_toEndOf="@+id/userTitle"
         app:layout_constraintHorizontal_bias="1.0"
-        app:layout_constraintStart_toStartOf="@+id/text1"
+        app:layout_constraintStart_toStartOf="@+id/userTitle"
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
-        android:id="@+id/text2"
+        android:id="@+id/locationNameByApi"
         android:layout_width="413dp"
         android:layout_height="37dp"
-        android:layout_below="@+id/text1"
-        android:layout_alignStart="@+id/text1"
+        android:layout_below="@+id/userTitle"
+        android:layout_alignStart="@+id/userTitle"
         android:layout_marginTop="8dp"
         android:minHeight="?android:attr/listPreferredItemHeightSmall"
         android:paddingStart="?android:attr/listPreferredItemPaddingStart"
@@ -51,6 +53,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/text1" />
+        app:layout_constraintTop_toBottomOf="@+id/userTitle" />
 
 </android.support.constraint.ConstraintLayout>
