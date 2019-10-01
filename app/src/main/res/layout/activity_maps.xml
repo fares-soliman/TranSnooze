@@ -60,6 +60,7 @@
         android:padding="16sp"
 
         android:text="Hold the screen to drop a marker"
+        android:textAlignment="center"
         android:textColor="#FFFFFF"
         android:textSize="20sp" />
 
