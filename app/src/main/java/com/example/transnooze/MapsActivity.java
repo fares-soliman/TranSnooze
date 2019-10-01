@@ -1,6 +1,7 @@
 package com.example.transnooze;
 
 import android.Manifest;
+import android.app.Application;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -26,6 +27,7 @@ import android.widget.TextView;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.GeofencingClient;
 import com.google.android.gms.location.GeofencingRequest;
@@ -51,6 +53,7 @@ import com.google.android.libraries.places.api.Places;
 import com.google.android.libraries.places.api.net.PlacesClient;
 import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
 import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
+import com.tbruyelle.rxpermissions2.RxPermissions;
 
 
 import java.io.IOException;
@@ -58,48 +61,50 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
+import io.reactivex.functions.Consumer;
+
 import static com.google.android.gms.location.Geofence.NEVER_EXPIRE;
 
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, GoogleMap.OnMapLongClickListener, LocationListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
     private GoogleMap mMap;
+    private FusedLocationProviderClient mFusedLocationProverClient;
     private LocationManager locationManager;
-    private GeofencingClient geofencingClient;
     private static final long MIN_TIME = 400;
     private static final float MIN_DISTANCE = 1000;
     private static int geofenceNumber = 0;
     private FloatingActionButton checkFab;
     private TextView hint;
-    private RadioButton button500m;
-    private RadioButton button1km;
-    private RadioButton button2km;
     private RadioGroup distanceRadios;
     String TAG = "placeautocomplete";
     private GoogleApiClient googleApiClient;
     private Location lastLocation;
     private LocationRequest locationRequest;
-    private final int UPDATE_INTERVAL =  1000;
+    private final int UPDATE_INTERVAL = 1000;
     private final int FASTEST_INTERVAL = 900;
     private static float GEOFENCE_RADIUS = 500.0f;
     private Circle geoFenceLimits;
     private static double LAT;
     private static double LONG;
     private Marker geoFenceMarker;
+    private String address;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_maps);
 
+
+
+        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, MIN_TIME, MIN_DISTANCE, this);
+
+        setContentView(R.layout.activity_maps);
         createGoogleApi();
 
         Places.initialize(getApplicationContext(), "AIzaSyCN15Tb6TbvsMibYwpmveCen_lbnga3_dc");
         PlacesClient placesClient = Places.createClient(this);
-
-
-
 
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
@@ -107,18 +112,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .findFragmentById(R.id.map);
 
 
-        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            final int REQUEST_LOCATION = 2;
-            ActivityCompat.requestPermissions( this, new String[] {  Manifest.permission.ACCESS_FINE_LOCATION  },
-                    REQUEST_LOCATION );
-        }
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, MIN_TIME, MIN_DISTANCE, this);
-
         mapFragment.getMapAsync(this);
-        geofencingClient = LocationServices.getGeofencingClient(this);
-
-        final TextView txtView = findViewById(R.id.txtView);
+        GeofencingClient geofencingClient = LocationServices.getGeofencingClient(this);
 
         checkFab = findViewById(R.id.checkFab);
         checkFab.setEnabled(false);
@@ -128,33 +123,34 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             public void onClick(View view) {
 
                 Geofence geofence = new Geofence.Builder()
-                        .setRequestId("GeoFence" + geofenceNumber) // Geofence ID
-                        .setCircularRegion( LAT, LONG, GEOFENCE_RADIUS) // defining fence region
+                        .setRequestId(address) // Geofence ID
+                        .setCircularRegion(LAT, LONG, GEOFENCE_RADIUS) // defining fence region
                         .setExpirationDuration(NEVER_EXPIRE) // expiring date
                         // Transition types that it should look for
-                        .setTransitionTypes( Geofence.GEOFENCE_TRANSITION_ENTER)
+                        .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER)
                         .build();
 
                 GeofencingRequest request = new GeofencingRequest.Builder()
                         // Notification to trigger when the Geofence is created
-                        .setInitialTrigger( GeofencingRequest.INITIAL_TRIGGER_ENTER )
-                        .addGeofence( geofence ) // add a Geofence
+                        .setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER)
+                        .addGeofence(geofence) // add a Geofence
                         .build();
 
                 Intent mapToName = new Intent(getBaseContext(), EnterNameActivity.class);
+                mapToName.putExtra("nameOfPlace", address);
                 startActivity(mapToName);
 
             }
         });
 
         hint = findViewById(R.id.hint);
-
-        button500m = findViewById(R.id.button500m);
-        button1km = findViewById(R.id.button1km);
-        button2km = findViewById(R.id.button2km);
+        RadioButton button500m = findViewById(R.id.button500m);
+        RadioButton button1km = findViewById(R.id.button1km);
+        RadioButton button2km = findViewById(R.id.button2km);
         distanceRadios = findViewById(R.id.distanceRadios);
         distanceRadios.setEnabled(false);
         distanceRadios.setAlpha(0.25f);
+        final TextView txtView = findViewById(R.id.txtView);
 
         button500m.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -212,8 +208,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         });
 
 
-
-
         AutocompleteSupportFragment autocompleteFragment = (AutocompleteSupportFragment)
                 getSupportFragmentManager().findFragmentById(R.id.autocomplete_fragment);
 
@@ -223,7 +217,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onPlaceSelected(Place place) {
                 // TODO: Get info about the selected place.
-                txtView.setText(place.getName()+","+place.getId());
+                txtView.setText(place.getName() + "," + place.getId());
                 Log.i(TAG, "Place: " + place.getName() + ", " + place.getId() + ',' + place.getLatLng());
                 CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(place.getLatLng(), 17);
                 mMap.animateCamera(cameraUpdate);
@@ -236,24 +230,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         });
 
-
-
-
-
-
     }
 
     private void createGoogleApi() {
         Log.d(TAG, "createGoogleApi()");
-        if ( googleApiClient == null ) {
-            googleApiClient = new GoogleApiClient.Builder( this )
-                    .addConnectionCallbacks( this )
-                    .addOnConnectionFailedListener( this )
-                    .addApi( LocationServices.API )
+        if (googleApiClient == null) {
+            googleApiClient = new GoogleApiClient.Builder(this)
+                    .addConnectionCallbacks(this)
+                    .addOnConnectionFailedListener(this)
+                    .addApi(LocationServices.API)
                     .build();
         }
     }
-
 
 
     @Override
@@ -308,20 +296,30 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         hint.setAlpha(0f);
 
         List<Address> addresses = null;
-        Geocoder geocoder = new Geocoder(this, Locale.getDefault());;
+        Geocoder geocoder = new Geocoder(this, Locale.getDefault());
+        ;
         try {
             addresses = geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1);
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        String address = addresses.get(0).getAddressLine(0);
+        // TODO: deflect this if error
+        address = addresses.get(0).getAddressLine(0);
 
-        if (addresses.get(0).getFeatureName() != null) {
-            address = addresses.get(0).getAddressLine(0);
-        }
 
         Log.e("test", address);
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+        Log.e("location", locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER).toString());
 
 
     }
